@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Zendesk View Auto-Refresh",
+  "version": "1.0.0",
+  "description": "Automatically refreshes Zendesk views with start/stop control",
+  "permissions": [
+    "storage",
+    "alarms",
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://*.zendesk.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon-off-16.png",
+      "48": "icon-off-48.png",
+      "128": "icon-off-128.png"
+    }
+  },
+  "icons": {
+    "16": "icon-16.png",
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  }
+}
