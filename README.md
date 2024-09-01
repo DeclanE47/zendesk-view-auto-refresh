@@ -33,7 +33,7 @@ Zendesk View Auto-Refresh is a browser extension that automatically refreshes yo
 
 The extension works by simulating a click on the refresh button in your Zendesk views. It supports various Zendesk layouts and attempts to find the correct refresh button using multiple selectors.
 
-
+![image](https://i.imgur.com/ImEAQyo.gif)
 
 ## Development
 
