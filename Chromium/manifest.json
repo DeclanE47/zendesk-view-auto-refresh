@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Zendesk View Auto-Refresh",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Automatically refreshes Zendesk views with start/stop control",
   "permissions": [
     "storage",

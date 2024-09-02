@@ -1,14 +1,17 @@
 let nextRefreshTime = 0;
 let isRefreshing = false;
-let refreshInterval = 1; // Default to 1 minute
+let refreshInterval = 0.5; // Default to 30 seconds (0.5 minutes)
+let badgeUpdateTimer = null;
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.sync.get(['refreshInterval', 'isRefreshing'], (data) => {
-    refreshInterval = data.refreshInterval !== undefined ? data.refreshInterval : 1;
+    refreshInterval = data.refreshInterval !== undefined ? data.refreshInterval : 0.5;
     isRefreshing = data.isRefreshing !== undefined ? data.isRefreshing : false;
     updateIcon(isRefreshing);
     if (isRefreshing) {
       scheduleNextRefresh();
+    } else {
+      clearBadgeText();
     }
     console.log('Extension installed. Initial state:', { refreshInterval, isRefreshing });
   });
@@ -25,7 +28,7 @@ function notifyPopup() {
 }
 
 function scheduleNextRefresh() {
-  const delayInMinutes = refreshInterval >= 1 ? refreshInterval : 0.5;
+  const delayInMinutes = refreshInterval;
   const delayInMilliseconds = delayInMinutes * 60000;
 
   chrome.alarms.create("refreshZendeskViews", { delayInMinutes: delayInMinutes });
@@ -34,6 +37,42 @@ function scheduleNextRefresh() {
   
   console.log(`Next refresh scheduled in ${delayInMinutes} minutes`);
   notifyPopup();
+  updateBadgeText();
+}
+
+function clearBadgeText() {
+  chrome.action.setBadgeText({ text: '' });
+  if (badgeUpdateTimer) {
+    clearTimeout(badgeUpdateTimer);
+    badgeUpdateTimer = null;
+  }
+}
+
+function updateBadgeText() {
+  if (!isRefreshing) {
+    clearBadgeText();
+    return;
+  }
+
+  const updateTimer = () => {
+    const now = Date.now();
+    const timeLeft = Math.max(0, Math.floor((nextRefreshTime - now) / 1000));
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    const badgeText = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    chrome.action.setBadgeText({ text: badgeText });
+    chrome.action.setBadgeBackgroundColor({ color: '#4CAF50' });
+
+    if (timeLeft > 0 && isRefreshing) {
+      badgeUpdateTimer = setTimeout(updateTimer, 1000);
+    } else if (isRefreshing) {
+      badgeUpdateTimer = setTimeout(updateBadgeText, 1000);
+    } else {
+      clearBadgeText();
+    }
+  };
+
+  updateTimer();
 }
 
 chrome.alarms.onAlarm.addListener((alarm) => {
@@ -142,6 +181,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       chrome.alarms.clear("refreshZendeskViews");
       nextRefreshTime = 0;
       chrome.storage.local.set({ nextRefreshTime: 0 });
+      clearBadgeText();
     }
     sendResponse({ success: true });
   } else if (request.action === "setRefreshInterval") {
