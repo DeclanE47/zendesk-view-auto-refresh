@@ -2,6 +2,19 @@
 
 Zendesk View Auto-Refresh is a browser extension that automatically refreshes your Zendesk views, ensuring you always have the most up-to-date information without manual intervention.
 
+## Current Version
+
+- **Version:** 1.0.0
+- **Last Updated:** September 2, 2024
+- **Changelog:** [View Changelog](https://github.com/DeclanE47/zendesk-view-auto-refresh/commits/V1.0.0)
+
+## Compatibility
+
+- Chrome: 88+
+- Firefox: 78+
+- Edge: 88+
+- Opera: 75+
+
 ## Features
 
 - Automatic refresh of Zendesk views
@@ -14,11 +27,15 @@ Zendesk View Auto-Refresh is a browser extension that automatically refreshes yo
 
 ### Chromium-based Browsers (Chrome, Edge, Brave, etc.)
 
-[Chrome Web Store Link] - Coming Soon!
+[Chrome Web Store Link](https://chromewebstore.google.com/detail/zendesk-view-auto-refresh/ckdcgmfljnlmeiilogogfheobbpjiilo)
 
 ### Firefox
 
-[Firefox Add-ons Store Link] - Coming Soon!
+[Firefox Add-ons Store Link](https://addons.mozilla.org/en-GB/firefox/addon/zendesk-view-auto-refresh/)
+
+### Microsoft Edge
+
+Coming Soon! (Note: The Google Chrome extension is compatible with Microsoft Edge)
 
 ## Usage
 
@@ -73,12 +90,10 @@ zendesk-view-auto-refresh/
    ```
    git clone https://github.com/DeclanE47/zendesk-view-auto-refresh.git
    ```
-
 2. For Chromium-based browsers:
    - Open your browser and go to `chrome://extensions`
    - Enable "Developer mode"
    - Click "Load unpacked" and select the `chromium` folder
-
 3. For Firefox:
    - Open Firefox and go to `about:debugging#/runtime/this-firefox`
    - Click "Load Temporary Add-on" and select the `manifest.json` file in the `firefox` folder
