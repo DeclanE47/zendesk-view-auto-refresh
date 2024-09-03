@@ -12,16 +12,28 @@
             background-color: #f5f5f5;
             color: #333;
             margin: 0;
+            transition: background-color 0.3s, color 0.3s;
+            position: relative;
+        }
+        body.dark-mode {
+            background-color: #333;
+            color: #fff;
         }
         h1 {
             font-size: 18px;
             margin: 0 0 15px 0;
             color: #03363D;
         }
+        body.dark-mode h1 {
+            color: #f5f5f5;
+        }
         label {
             display: block;
             margin-bottom: 5px;
             color: #2F3941;
+        }
+        body.dark-mode label {
+            color: #C2C8CC;
         }
         select {
             width: 100%;
@@ -31,18 +43,10 @@
             border-radius: 4px;
             background-color: white;
         }
-        button {
-            width: 100%;
-            padding: 10px;
-            background-color: #17494D;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #1F7C83;
+        body.dark-mode select {
+            background-color: #2F3941;
+            color: #f5f5f5;
+            border-color: #555;
         }
         #countdown {
             font-size: 16px;
@@ -52,6 +56,9 @@
             background-color: #E9EBED;
             border-radius: 4px;
             text-align: center;
+        }
+        body.dark-mode #countdown {
+            background-color: #2F3941;
         }
         .switch {
             position: relative;
@@ -101,15 +108,71 @@
             justify-content: space-between;
             align-items: center;
         }
+        body.dark-mode .footer {
+            color: #C2C8CC;
+        }
+        .refresh-toggle {
+            margin-bottom: 15px;
+        }
+        .mode-toggle-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .mode-toggle-icon svg {
+            width: 100%;
+            height: 100%;
+            color: #333;
+        }
+        body.dark-mode .mode-toggle-icon svg {
+            color: #f5f5f5;
+        }
+        .moon-icon {
+            display: block;
+        }
+        .sun-icon {
+            display: none;
+        }
+        body.dark-mode .moon-icon {
+            display: none;
+        }
+        body.dark-mode .sun-icon {
+            display: block;
+        }
     </style>
 </head>
 <body>
+    <div id="modeToggleIcon" class="mode-toggle-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="moon-icon">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sun-icon">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+    </div>
     <h1>Zendesk View Auto-Refresh</h1>
     
-    <label class="switch">
-        <input type="checkbox" id="refreshToggle">
-        <span class="slider"></span>
-    </label>
+    <div class="refresh-toggle">
+        <label for="refreshToggle">Toggle Refresh:</label>
+        <label class="switch">
+            <input type="checkbox" id="refreshToggle">
+            <span class="slider"></span>
+        </label>
+    </div>
     
     <label for="intervalSelect">Refresh interval:</label>
     <select id="intervalSelect">
@@ -128,7 +191,7 @@
             <a href="https://emery.tools" target="_blank" style="color: inherit; text-decoration: none;">Maintained by Emery.Tools</a>
         </div>
         <div class="version">
-            v<span id="extensionVersion">1.0.7</span>
+            v<span id="extensionVersion"></span>
         </div>
     </div>
 

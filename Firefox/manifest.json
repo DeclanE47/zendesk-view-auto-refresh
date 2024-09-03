@@ -1,13 +1,12 @@
 {
   "manifest_version": 2,
-  "name": "Zendesk View Auto-Refresh",
-  "version": "1.0.0",
-  "description": "Automatically refreshes Zendesk views with start/stop control",
+  "name": "Zendesk View Auto Refresh",
+  "version": "1.0.2",
+  "description": "Zendesk View Auto Refresh: Streamline your workflow with customizable, automated view updates and easy toggle control.",
   "permissions": [
     "storage",
     "alarms",
     "tabs",
-    "scripting",
     "https://*.zendesk.com/*"
   ],
   "background": {

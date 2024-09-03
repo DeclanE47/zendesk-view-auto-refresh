@@ -1,29 +1,30 @@
 let nextRefreshTime = 0;
 let isRefreshing = false;
-let refreshInterval = 1; // Default to 1 minute
+let refreshInterval = 0.5; // Default to 30 seconds (0.5 minutes)
+let badgeUpdateTimer = null;
 
 browser.runtime.onInstalled.addListener(() => {
   browser.storage.sync.get(['refreshInterval', 'isRefreshing']).then((data) => {
-    refreshInterval = data.refreshInterval !== undefined ? data.refreshInterval : 1;
+    refreshInterval = data.refreshInterval !== undefined ? data.refreshInterval : 0.5;
     isRefreshing = data.isRefreshing !== undefined ? data.isRefreshing : false;
     updateIcon(isRefreshing);
     if (isRefreshing) {
       scheduleNextRefresh();
+    } else {
+      clearBadgeText();
     }
     console.log('Extension installed. Initial state:', { refreshInterval, isRefreshing });
   });
 });
 
 function notifyPopup() {
-  browser.runtime.sendMessage({ action: "updateCountdown", nextRefreshTime: nextRefreshTime }).then((response) => {
-    console.log("Popup notified:", response);
-  }).catch((error) => {
+  browser.runtime.sendMessage({ action: "updateCountdown", nextRefreshTime: nextRefreshTime, isRefreshing: isRefreshing }).catch((error) => {
     console.log("Popup not available:", error);
   });
 }
 
 function scheduleNextRefresh() {
-  const delayInMinutes = refreshInterval >= 1 ? refreshInterval : 0.5;
+  const delayInMinutes = refreshInterval;
   const delayInMilliseconds = delayInMinutes * 60000;
 
   browser.alarms.create("refreshZendeskViews", { delayInMinutes: delayInMinutes });
@@ -32,6 +33,51 @@ function scheduleNextRefresh() {
   
   console.log(`Next refresh scheduled in ${delayInMinutes} minutes`);
   notifyPopup();
+  updateBadgeText();
+}
+
+function clearBadgeText() {
+  browser.browserAction.setBadgeText({ text: '' });
+  if (badgeUpdateTimer) {
+    clearTimeout(badgeUpdateTimer);
+    badgeUpdateTimer = null;
+  }
+}
+
+function updateBadgeText() {
+  if (!isRefreshing) {
+    clearBadgeText();
+    return;
+  }
+
+  const updateTimer = () => {
+    const now = Date.now();
+    const timeLeft = Math.max(0, Math.floor((nextRefreshTime - now) / 1000));
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    
+    // Format the badge text to ensure it fits
+    let badgeText;
+    if (minutes > 0) {
+      badgeText = `${minutes}m`;
+    } else {
+      badgeText = seconds.toString();
+    }
+    
+    // Set the badge text with padding to center it
+    browser.browserAction.setBadgeText({ text: ` ${badgeText} ` });
+    browser.browserAction.setBadgeBackgroundColor({ color: '#4CAF50' });
+
+    if (timeLeft > 0 && isRefreshing) {
+      badgeUpdateTimer = setTimeout(updateTimer, 1000);
+    } else if (isRefreshing) {
+      refreshZendeskViews();
+    } else {
+      clearBadgeText();
+    }
+  };
+
+  updateTimer();
 }
 
 browser.alarms.onAlarm.addListener((alarm) => {
@@ -39,7 +85,6 @@ browser.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === "refreshZendeskViews" && isRefreshing) {
     console.log('Refreshing Zendesk views');
     refreshZendeskViews();
-    scheduleNextRefresh();
   }
 });
 
@@ -47,8 +92,10 @@ function refreshZendeskViews() {
   browser.tabs.query({ url: "https://*.zendesk.com/agent/*" }).then((tabs) => {
     if (tabs.length === 0) {
       console.log('No Zendesk tabs found');
+      scheduleNextRefresh(); // Reschedule even if no tabs are found
       return;
     }
+    let refreshedTabs = 0;
     tabs.forEach((tab) => {
       browser.tabs.executeScript(tab.id, {
         code: `(${clickRefreshButton.toString()})();`
@@ -56,8 +103,16 @@ function refreshZendeskViews() {
         if (results && results[0]) {
           console.log('Script execution result:', results[0]);
         }
+        refreshedTabs++;
+        if (refreshedTabs === tabs.length) {
+          scheduleNextRefresh(); // Reschedule after all tabs are refreshed
+        }
       }).catch((error) => {
         console.error('Error executing script:', error);
+        refreshedTabs++;
+        if (refreshedTabs === tabs.length) {
+          scheduleNextRefresh(); // Reschedule even if there was an error
+        }
       });
     });
   });
@@ -112,16 +167,20 @@ function findButtonBySVGPath() {
 }
 
 function updateIcon(isOn) {
-  const iconPath = {
-    16: isOn ? 'icon-16.png' : 'icon-off-16.png',
-    48: isOn ? 'icon-48.png' : 'icon-off-48.png',
-    128: isOn ? 'icon-128.png' : 'icon-off-128.png'
+  const iconPath = isOn ? {
+    16: "icon-16.png",
+    48: "icon-48.png",
+    128: "icon-128.png"
+  } : {
+    16: "icon-off-16.png",
+    48: "icon-off-48.png",
+    128: "icon-off-128.png"
   };
   browser.browserAction.setIcon({ path: iconPath });
-  console.log('Icon updated:', iconPath);
+  console.log('Icon updated:', isOn ? 'on' : 'off');
 }
 
-browser.runtime.onMessage.addListener((request, sender) => {
+browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log('Received message:', request);
   if (request.action === "getRefreshState") {
     return Promise.resolve({ nextRefreshTime: nextRefreshTime, isRefreshing: isRefreshing, refreshInterval: refreshInterval });
@@ -135,6 +194,7 @@ browser.runtime.onMessage.addListener((request, sender) => {
       browser.alarms.clear("refreshZendeskViews");
       nextRefreshTime = 0;
       browser.storage.local.set({ nextRefreshTime: 0 });
+      clearBadgeText();
     }
     return Promise.resolve({ success: true });
   } else if (request.action === "setRefreshInterval") {
