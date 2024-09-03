@@ -2,27 +2,6 @@
 
 Zendesk View Auto-Refresh is a browser extension that automatically refreshes your Zendesk views, ensuring you always have the most up-to-date information without manual intervention.
 
-## Current Version
-
-- **Version:** 1.0.0
-- **Last Updated:** September 2, 2024
-- **Changelog:** [View Changelog](https://github.com/DeclanE47/zendesk-view-auto-refresh/commits/V1.0.0)
-
-## Compatibility
-
-- Chrome: 88+
-- Firefox: 78+
-- Edge: 88+
-- Opera: 75+
-
-## Features
-
-- Automatic refresh of Zendesk views
-- Customizable refresh intervals (30 seconds to 10 minutes)
-- Easy to use on/off toggle
-- Countdown timer to next refresh
-- Works with multiple Zendesk tabs simultaneously
-
 ## Installation
 
 ### Chromium-based Browsers (Chrome, Edge, Brave, etc.)
@@ -36,6 +15,14 @@ Zendesk View Auto-Refresh is a browser extension that automatically refreshes yo
 ### Microsoft Edge
 
 Coming Soon! (Note: The Google Chrome extension is compatible with Microsoft Edge)
+
+## Features
+
+- Automatic refresh of Zendesk views
+- Customizable refresh intervals (30 seconds to 10 minutes)
+- Easy to use on/off toggle
+- Countdown timer to next refresh
+- Works with multiple Zendesk tabs simultaneously
 
 ## Usage
 
@@ -51,6 +38,19 @@ Coming Soon! (Note: The Google Chrome extension is compatible with Microsoft Edg
 The extension works by simulating a click on the refresh button in your Zendesk views. It supports various Zendesk layouts and attempts to find the correct refresh button using multiple selectors.
 
 ![Zendesk-View-Refresher-Setup](https://github.com/user-attachments/assets/1ea5fe66-65cc-4b22-85ae-25b26c2abbf5)
+
+## Current Version
+
+- **Version:** 1.0.2
+- **Last Updated:** September 3, 2024
+- **Changelog:** [View Changelog](https://github.com/DeclanE47/zendesk-view-auto-refresh/commits/V1.0.2)
+
+## Compatibility
+
+- Chrome: 88+
+- Firefox: 78+
+- Edge: 88+
+- Opera: 75+
 
 ## Development
 
