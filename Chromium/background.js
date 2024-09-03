@@ -18,7 +18,7 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 function notifyPopup() {
-  chrome.runtime.sendMessage({ action: "updateCountdown", nextRefreshTime: nextRefreshTime }, (response) => {
+  chrome.runtime.sendMessage({ action: "updateCountdown", nextRefreshTime: nextRefreshTime, isRefreshing: isRefreshing }, (response) => {
     if (chrome.runtime.lastError) {
       console.log("Popup not available:", chrome.runtime.lastError.message);
     } else {
@@ -66,7 +66,7 @@ function updateBadgeText() {
     if (timeLeft > 0 && isRefreshing) {
       badgeUpdateTimer = setTimeout(updateTimer, 1000);
     } else if (isRefreshing) {
-      badgeUpdateTimer = setTimeout(updateBadgeText, 1000);
+      refreshZendeskViews();
     } else {
       clearBadgeText();
     }
@@ -80,7 +80,6 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === "refreshZendeskViews" && isRefreshing) {
     console.log('Refreshing Zendesk views');
     refreshZendeskViews();
-    scheduleNextRefresh();
   }
 });
 
@@ -88,8 +87,10 @@ function refreshZendeskViews() {
   chrome.tabs.query({ url: "https://*.zendesk.com/agent/*" }, (tabs) => {
     if (tabs.length === 0) {
       console.log('No Zendesk tabs found');
+      scheduleNextRefresh(); // Reschedule even if no tabs are found
       return;
     }
+    let refreshedTabs = 0;
     tabs.forEach((tab) => {
       chrome.scripting.executeScript({
         target: { tabId: tab.id },
@@ -99,6 +100,10 @@ function refreshZendeskViews() {
           console.error('Error executing script:', chrome.runtime.lastError.message);
         } else if (results && results[0]) {
           console.log('Script execution result:', results[0].result);
+        }
+        refreshedTabs++;
+        if (refreshedTabs === tabs.length) {
+          scheduleNextRefresh(); // Reschedule after all tabs are refreshed
         }
       });
     });
