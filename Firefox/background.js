@@ -120,50 +120,36 @@ function refreshZendeskViews() {
 }
 
 function clickRefreshButton() {
-  const selectors = [
-    'button[data-test-id="views_views-list_header-refresh"]',
+  // Specific selector for the refresh button
+  const refreshButtonSelector = 'button[data-test-id="views_views-list_header-refresh"]';
+  const refreshButton = document.querySelector(refreshButtonSelector);
+
+  if (refreshButton) {
+    refreshButton.click();
+    console.log('Refresh button clicked:', refreshButtonSelector);
+    return true;
+  }
+
+  // Fallback selectors if the specific one doesn't work
+  const fallbackSelectors = [
     'button[aria-label="Refresh views pane"]',
-    'button[data-garden-id="buttons.icon_button"]',
-    'button.StyledButton-sc-qe3ace-0',
-    'button.StyledIconButton-sc-1t0ughp-0',
-    'button:has(svg[data-garden-id="buttons.icon"])'
+    'button[data-garden-id="buttons.icon_button"]:not([data-test-id])',
+    'button.StyledButton-sc-qe3ace-0:not([data-test-id])',
+    'button.StyledIconButton-sc-1t0ughp-0:not([data-test-id])',
+    'button:has(svg[data-garden-id="buttons.icon"]):not([data-test-id])'
   ];
 
-  for (const selector of selectors) {
-    const refreshButton = document.querySelector(selector);
-    if (refreshButton) {
-      refreshButton.click();
-      console.log('Refresh button clicked:', selector);
+  for (const selector of fallbackSelectors) {
+    const button = document.querySelector(selector);
+    if (button && !button.closest('[data-test-id="header-toolbar"]')) {
+      button.click();
+      console.log('Refresh button clicked using fallback:', selector);
       return true;
     }
   }
 
-  const svgButton = findButtonBySVGPath();
-  if (svgButton) {
-    svgButton.click();
-    console.log('Refresh button clicked using SVG path');
-    return true;
-  }
-
   console.log('Refresh button not found');
   return false;
-}
-
-function findButtonBySVGPath() {
-  const buttons = document.querySelectorAll('button');
-  const svgPath = "M10 4c-.8-1.1-2-2.5-4.1-2.5-2.5 0-4.4 2-4.4 4.5s2 4.5 4.4 4.5c1.3 0 2.5-.6 3.3-1.5m1.3-7.5V4c0 .3-.2.5-.5.5H7.5";
-  
-  for (const button of buttons) {
-    const svg = button.querySelector('svg');
-    if (svg) {
-      const path = svg.querySelector('path');
-      if (path && path.getAttribute('d') === svgPath) {
-        return button;
-      }
-    }
-  }
-  
-  return null;
 }
 
 function updateIcon(isOn) {
