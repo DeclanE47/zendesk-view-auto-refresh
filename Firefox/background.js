@@ -140,11 +140,17 @@ function clickRefreshButton() {
   ];
 
   for (const selector of fallbackSelectors) {
-    const button = document.querySelector(selector);
-    if (button && !button.closest('[data-test-id="header-toolbar"]')) {
-      button.click();
-      console.log('Refresh button clicked using fallback:', selector);
-      return true;
+    const buttons = document.querySelectorAll(selector);
+    for (const button of buttons) {
+      // Exclude buttons with text content "Export CSV"
+      if (
+        !button.closest('[data-test-id="header-toolbar"]') && 
+        !button.textContent.includes('Export CSV')
+      ) {
+        button.click();
+        console.log('Refresh button clicked using fallback:', selector);
+        return true;
+      }
     }
   }
 
