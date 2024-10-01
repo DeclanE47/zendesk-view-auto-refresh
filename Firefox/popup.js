@@ -12,12 +12,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   
     function initPopup() {
-        browser.runtime.sendMessage({ action: "getRefreshState" }).then((response) => {
-            intervalSelect.value = response.refreshInterval.toString();
-            refreshToggle.checked = response.isRefreshing;
-            updateCountdownDisplay(response.nextRefreshTime, response.isRefreshing);
-        }).catch((error) => {
-            console.error(error);
+        browser.storage.sync.get(['refreshInterval', 'isRefreshing']).then((data) => {
+            intervalSelect.value = data.refreshInterval !== undefined ? data.refreshInterval.toString() : "0.5";
+            refreshToggle.checked = data.isRefreshing !== undefined ? data.isRefreshing : false;
+            
+            browser.runtime.sendMessage({ action: "getRefreshState" }).then((response) => {
+                updateCountdownDisplay(response.nextRefreshTime, response.isRefreshing);
+            }).catch((error) => {
+                console.error(error);
+            });
         });
   
         // Load dark mode preference
@@ -93,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Listen for changes from the background script
     browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
         if (request.action === "updateCountdown") {
-            updateCountdownDisplay(request.nextRefreshTime, true);
+            updateCountdownDisplay(request.nextRefreshTime, request.isRefreshing);
         }
     });
-  });
+});

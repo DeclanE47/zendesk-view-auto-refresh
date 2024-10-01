@@ -4,6 +4,14 @@ let refreshInterval = 0.5; // Default to 30 seconds (0.5 minutes)
 let badgeUpdateTimer = null;
 
 browser.runtime.onInstalled.addListener(() => {
+  initializeState();
+});
+
+browser.runtime.onStartup.addListener(() => {
+  initializeState();
+});
+
+function initializeState() {
   browser.storage.sync.get(['refreshInterval', 'isRefreshing']).then((data) => {
     refreshInterval = data.refreshInterval !== undefined ? data.refreshInterval : 0.5;
     isRefreshing = data.isRefreshing !== undefined ? data.isRefreshing : false;
@@ -13,9 +21,9 @@ browser.runtime.onInstalled.addListener(() => {
     } else {
       clearBadgeText();
     }
-    console.log('Extension installed. Initial state:', { refreshInterval, isRefreshing });
+    console.log('Extension initialized. State:', { refreshInterval, isRefreshing });
   });
-});
+}
 
 function notifyPopup() {
   browser.runtime.sendMessage({ action: "updateCountdown", nextRefreshTime: nextRefreshTime, isRefreshing: isRefreshing }).catch((error) => {
@@ -56,7 +64,6 @@ function updateBadgeText() {
     const minutes = Math.floor(timeLeft / 60);
     const seconds = timeLeft % 60;
     
-    // Format the badge text to ensure it fits
     let badgeText;
     if (minutes > 0) {
       badgeText = `${minutes}m`;
@@ -64,7 +71,6 @@ function updateBadgeText() {
       badgeText = seconds.toString();
     }
     
-    // Set the badge text with padding to center it
     browser.browserAction.setBadgeText({ text: ` ${badgeText} ` });
     browser.browserAction.setBadgeBackgroundColor({ color: '#4CAF50' });
 
