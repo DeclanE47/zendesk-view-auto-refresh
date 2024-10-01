@@ -4,6 +4,14 @@ let refreshInterval = 0.5; // Default to 30 seconds (0.5 minutes)
 let badgeUpdateTimer = null;
 
 chrome.runtime.onInstalled.addListener(() => {
+  initializeState();
+});
+
+chrome.runtime.onStartup.addListener(() => {
+  initializeState();
+});
+
+function initializeState() {
   chrome.storage.sync.get(['refreshInterval', 'isRefreshing'], (data) => {
     refreshInterval = data.refreshInterval !== undefined ? data.refreshInterval : 0.5;
     isRefreshing = data.isRefreshing !== undefined ? data.isRefreshing : false;
@@ -13,9 +21,9 @@ chrome.runtime.onInstalled.addListener(() => {
     } else {
       clearBadgeText();
     }
-    console.log('Extension installed. Initial state:', { refreshInterval, isRefreshing });
+    console.log('Extension initialized. State:', { refreshInterval, isRefreshing });
   });
-});
+}
 
 function notifyPopup() {
   chrome.runtime.sendMessage({ action: "updateCountdown", nextRefreshTime: nextRefreshTime, isRefreshing: isRefreshing }, (response) => {

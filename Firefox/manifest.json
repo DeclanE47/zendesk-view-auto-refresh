@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Zendesk View Auto Refresh",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Zendesk View Auto Refresh: Streamline your workflow with customizable, automated view updates and easy toggle control.",
   "permissions": [
     "storage",
