@@ -32,7 +32,7 @@ Zendesk View Auto-Refresh is a browser extension that automatically refreshes yo
 4. Toggle the "Enable auto-refresh" switch to start or stop the auto-refresh.
 5. Your settings will be remembered even after closing and reopening the browser.
 
-![image](https://github.com/user-attachments/assets/99e59a55-90c4-49ee-b952-f675d5a24540)
+![image](https://github.com/user-attachments/assets/0f98cc0f-ce1b-4747-97a7-3d2a9278825b)
 
 ## How It Works
 The extension works by simulating a click on the refresh button in your Zendesk views. It supports various Zendesk layouts and attempts to find the correct refresh button using multiple selectors. Your settings are saved and restored automatically, ensuring a consistent experience across browser sessions.
