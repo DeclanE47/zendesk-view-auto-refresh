@@ -16,6 +16,8 @@ Zendesk View Auto-Refresh is a browser extension that automatically refreshes yo
 
 [Edge Web Store Link](https://microsoftedge.microsoft.com/addons/detail/zendesk-view-auto-refresh/mblnlidmghfmoemohbemlaadjadfmepl)
 
+![Zendesk View Auto Refresh 1280 x 800 chrome extension](https://github.com/user-attachments/assets/4910da1b-0467-45a7-89b6-fb525a7d3e47)
+
 ## Features
 - Automatic refresh of Zendesk views
 - Customizable refresh intervals (30 seconds to 10 minutes)
