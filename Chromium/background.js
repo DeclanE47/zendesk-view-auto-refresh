@@ -3,16 +3,11 @@ let isRefreshing = false;
 let refreshInterval = 0.5; // Default to 30 seconds (0.5 minutes)
 let badgeUpdateTimer = null;
 
-chrome.runtime.onInstalled.addListener(() => {
-  initializeState();
-});
-
-chrome.runtime.onStartup.addListener(() => {
-  initializeState();
-});
+chrome.runtime.onInstalled.addListener(initializeState);
+chrome.runtime.onStartup.addListener(initializeState);
 
 function initializeState() {
-  chrome.storage.sync.get(['refreshInterval', 'isRefreshing'], (data) => {
+  chrome.storage.local.get(['refreshInterval', 'isRefreshing'], (data) => {
     refreshInterval = data.refreshInterval !== undefined ? data.refreshInterval : 0.5;
     isRefreshing = data.isRefreshing !== undefined ? data.isRefreshing : false;
     updateIcon(isRefreshing);
@@ -72,11 +67,11 @@ function updateBadgeText() {
     chrome.action.setBadgeBackgroundColor({ color: '#4CAF50' });
 
     if (timeLeft > 0 && isRefreshing) {
-      badgeUpdateTimer = setTimeout(updateTimer, 1000);
+        badgeUpdateTimer = setTimeout(updateTimer, 1000);  // Update every second
     } else if (isRefreshing) {
-      refreshZendeskViews();
+        refreshZendeskViews();
     } else {
-      clearBadgeText();
+        clearBadgeText();
     }
   };
 
@@ -132,11 +127,11 @@ function clickRefreshButton() {
 
   // Fallback selectors if the specific one doesn't work
   const fallbackSelectors = [
-    'button[aria-label="Refresh views pane"]',
-    'button[data-garden-id="buttons.icon_button"]:not([data-test-id])',
-    'button.StyledButton-sc-qe3ace-0:not([data-test-id])',
-    'button.StyledIconButton-sc-1t0ughp-0:not([data-test-id])',
-    'button:has(svg[data-garden-id="buttons.icon"]):not([data-test-id])'
+    'button[aria-label="Refresh views pane"]', // Common selector
+    'button.StyledIconButton-sc-1t0ughp-0:not([data-test-id])', // Less common
+    'button[data-garden-id="buttons.icon_button"]:not([data-test-id])', // Rarely used
+    'button.StyledButton-sc-qe3ace-0:not([data-test-id])', // Rarely used
+    'button:has(svg[data-garden-id="buttons.icon"]):not([data-test-id])' // Rarely used
   ];
 
   for (const selector of fallbackSelectors) {
@@ -179,7 +174,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.action === "setRefreshState") {
     isRefreshing = request.isRefreshing;
     updateIcon(isRefreshing);
-    chrome.storage.sync.set({ isRefreshing: isRefreshing });
+    chrome.storage.local.set({ isRefreshing: isRefreshing });
     if (isRefreshing) {
       scheduleNextRefresh();
     } else {
@@ -192,7 +187,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.action === "setRefreshInterval") {
     console.log('Setting new refresh interval:', request.interval);
     refreshInterval = request.interval;
-    chrome.storage.sync.set({ refreshInterval: refreshInterval });
+    chrome.storage.local.set({ refreshInterval: refreshInterval });
     if (isRefreshing) {
       chrome.alarms.clear("refreshZendeskViews");
       scheduleNextRefresh();
@@ -202,12 +197,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true;
 });
 
-// Check alarms and refresh state periodically
-setInterval(() => {
-  chrome.alarms.getAll((alarms) => {
-    console.log('Current alarms:', alarms);
-  });
-  console.log('Current state:', { isRefreshing, nextRefreshTime, refreshInterval });
-}, 30000); // Check every 30 seconds
+// Use alarms for periodic state checks instead of setInterval
+chrome.alarms.create("periodicCheck", { periodInMinutes: 0.5 }); // Check every 30 seconds
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === "periodicCheck") {
+    chrome.alarms.getAll((alarms) => console.log('Current alarms:', alarms));
+    console.log('Current state:', { isRefreshing, nextRefreshTime, refreshInterval });
+  }
+});
 
 console.log('Background script loaded');

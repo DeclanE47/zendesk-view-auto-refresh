@@ -1,3 +1,12 @@
+
+// Debounce function to limit storage update calls
+function debounce(func, delay) {
+    let debounceTimer;
+    return function() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => func.apply(this, arguments), delay);
+    };
+}
 document.addEventListener('DOMContentLoaded', () => {
     const intervalSelect = document.getElementById('intervalSelect');
     const countdownElement = document.getElementById('countdown');
@@ -12,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   
     function initPopup() {
-      chrome.storage.sync.get(['refreshInterval', 'isRefreshing'], (data) => {
+      chrome.storage.local.get(['refreshInterval', 'isRefreshing'], (data) => {
         intervalSelect.value = data.refreshInterval !== undefined ? data.refreshInterval.toString() : "0.5";
         refreshToggle.checked = data.isRefreshing !== undefined ? data.isRefreshing : false;
         
@@ -26,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   
       // Load dark mode preference
-      chrome.storage.sync.get('darkMode', (data) => {
+      chrome.storage.local.get('darkMode', (data) => {
         const isDarkMode = data.darkMode || false;
         updateDarkMode(isDarkMode);
       });
@@ -34,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
     function toggleDarkMode() {
       const isDarkMode = document.body.classList.toggle('dark-mode');
-      chrome.storage.sync.set({ darkMode: isDarkMode });
+      chrome.storage.local.set({ darkMode: isDarkMode });
     }
   
     function updateDarkMode(isDarkMode) {
