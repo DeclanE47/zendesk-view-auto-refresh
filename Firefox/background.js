@@ -3,13 +3,8 @@ let isRefreshing = false;
 let refreshInterval = 0.5; // Default to 30 seconds (0.5 minutes)
 let badgeUpdateTimer = null;
 
-browser.runtime.onInstalled.addListener(() => {
-  initializeState();
-});
-
-browser.runtime.onStartup.addListener(() => {
-  initializeState();
-});
+browser.runtime.onInstalled.addListener(initializeState);
+browser.runtime.onStartup.addListener(initializeState);
 
 function initializeState() {
   browser.storage.sync.get(['refreshInterval', 'isRefreshing']).then((data) => {
@@ -75,11 +70,12 @@ function updateBadgeText() {
     browser.browserAction.setBadgeBackgroundColor({ color: '#4CAF50' });
 
     if (timeLeft > 0 && isRefreshing) {
-      badgeUpdateTimer = setTimeout(updateTimer, 1000);
+        if (badgeUpdateTimer) clearTimeout(badgeUpdateTimer);
+        badgeUpdateTimer = setTimeout(updateTimer, 1000);
     } else if (isRefreshing) {
-      refreshZendeskViews();
+        refreshZendeskViews();
     } else {
-      clearBadgeText();
+        clearBadgeText();
     }
   };
 
@@ -138,11 +134,11 @@ function clickRefreshButton() {
 
   // Fallback selectors if the specific one doesn't work
   const fallbackSelectors = [
-    'button[aria-label="Refresh views pane"]',
-    'button[data-garden-id="buttons.icon_button"]:not([data-test-id])',
-    'button.StyledButton-sc-qe3ace-0:not([data-test-id])',
-    'button.StyledIconButton-sc-1t0ughp-0:not([data-test-id])',
-    'button:has(svg[data-garden-id="buttons.icon"]):not([data-test-id])'
+    'button[aria-label="Refresh views pane"]', // Common selector
+    'button.StyledIconButton-sc-1t0ughp-0:not([data-test-id])', // Less common
+    'button[data-garden-id="buttons.icon_button"]:not([data-test-id])', // Rarely used
+    'button.StyledButton-sc-qe3ace-0:not([data-test-id])', // Rarely used
+    'button:has(svg[data-garden-id="buttons.icon"]):not([data-test-id])' // Rarely used
   ];
 
   for (const selector of fallbackSelectors) {
@@ -207,12 +203,13 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-// Check alarms and refresh state periodically
-setInterval(() => {
-  browser.alarms.getAll().then((alarms) => {
-    console.log('Current alarms:', alarms);
-  });
-  console.log('Current state:', { isRefreshing, nextRefreshTime, refreshInterval });
-}, 30000); // Check every 30 seconds
+// Use alarms for periodic state checks instead of setInterval
+browser.alarms.create("periodicCheck", { periodInMinutes: 0.5 }); // Check every 30 seconds
+browser.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === "periodicCheck") {
+    browser.alarms.getAll().then((alarms) => console.log('Current alarms:', alarms));
+    console.log('Current state:', { isRefreshing, nextRefreshTime, refreshInterval });
+  }
+});
 
 console.log('Background script loaded');

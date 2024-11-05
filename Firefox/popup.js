@@ -1,3 +1,12 @@
+
+// Debounce function to limit storage update calls
+function debounce(func, delay) {
+    let debounceTimer;
+    return function() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => func.apply(this, arguments), delay);
+    };
+}
 document.addEventListener('DOMContentLoaded', () => {
     const intervalSelect = document.getElementById('intervalSelect');
     const countdownElement = document.getElementById('countdown');
@@ -58,7 +67,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
   
-    modeToggleIcon.addEventListener('click', toggleDarkMode);
+    let darkModeInitialized = false;
+    modeToggleIcon.addEventListener('click', () => {
+        if (!darkModeInitialized) {
+            toggleDarkMode();
+            darkModeInitialized = true;
+        }
+    });
   
     function updateCountdown() {
         clearInterval(countdownInterval);
