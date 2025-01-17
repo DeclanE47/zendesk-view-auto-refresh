@@ -115,7 +115,7 @@ function refreshZendeskViews() {
 }
 
 function clickRefreshButton() {
-  // Specific selector for the refresh button
+  // Primary selector targeting the specific refresh button
   const refreshButtonSelector = 'button[data-test-id="views_views-list_header-refresh"]';
   const refreshButton = document.querySelector(refreshButtonSelector);
 
@@ -125,21 +125,25 @@ function clickRefreshButton() {
     return true;
   }
 
-  // Fallback selectors if the specific one doesn't work
+  // Refined fallback selectors that explicitly avoid the product tray button
   const fallbackSelectors = [
-    'button[aria-label="Refresh views pane"]', // Common selector
-    'button.StyledIconButton-sc-1t0ughp-0:not([data-test-id])', // Less common
-    'button[data-garden-id="buttons.icon_button"]:not([data-test-id])', // Rarely used
-    'button.StyledButton-sc-qe3ace-0:not([data-test-id])', // Rarely used
-    'button:has(svg[data-garden-id="buttons.icon"]):not([data-test-id])' // Rarely used
+    // Target refresh button by its specific aria-label
+    'button[aria-label="Refresh views pane"]:not([aria-label="product tray"])',
+    // Target refresh button within the views list header area
+    '[data-test-id="views_views-list_header"] button:not([aria-label="product tray"])',
+    // Look for refresh icon button but exclude product tray
+    'button.StyledIconButton-sc-1t0oughp-0:not([aria-label="product tray"])',
+    // Target refresh button by its location in the views header
+    '[data-test-id="header-toolbar"] button:not([aria-label="product tray"])'
   ];
 
   for (const selector of fallbackSelectors) {
     const buttons = document.querySelectorAll(selector);
     for (const button of buttons) {
-      // Exclude buttons with text content "Export CSV"
+      // Additional checks to ensure we're not clicking the product tray
       if (
-        !button.closest('[data-test-id="header-toolbar"]') && 
+        !button.closest('[data-zd-owner="cDpwcm9kdWN0LXRyYXk"]') && // Exclude product tray container
+        !button.getAttribute('aria-label')?.includes('product tray') &&
         !button.textContent.includes('Export CSV')
       ) {
         button.click();
