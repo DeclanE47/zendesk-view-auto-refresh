@@ -21,24 +21,25 @@ function initializeState() {
 }
 
 function notifyPopup() {
-  chrome.runtime.sendMessage({ action: "updateCountdown", nextRefreshTime: nextRefreshTime, isRefreshing: isRefreshing }, (response) => {
+  chrome.runtime.sendMessage({ 
+    action: "updateCountdown", 
+    nextRefreshTime: nextRefreshTime, 
+    isRefreshing: isRefreshing 
+  }, (response) => {
     if (chrome.runtime.lastError) {
       console.log("Popup not available:", chrome.runtime.lastError.message);
-    } else {
-      console.log("Popup notified:", response);
     }
   });
 }
 
 function scheduleNextRefresh() {
-  const delayInMinutes = refreshInterval;
-  const delayInMilliseconds = delayInMinutes * 60000;
+  const delayInMilliseconds = refreshInterval * 60000;
 
-  chrome.alarms.create("refreshZendeskViews", { delayInMinutes: delayInMinutes });
+  chrome.alarms.create("refreshZendeskViews", { delayInMinutes: refreshInterval });
   nextRefreshTime = Date.now() + delayInMilliseconds;
   chrome.storage.local.set({ nextRefreshTime: nextRefreshTime });
   
-  console.log(`Next refresh scheduled in ${delayInMinutes} minutes`);
+  console.log(`Next refresh scheduled in ${refreshInterval} minutes`);
   notifyPopup();
   updateBadgeText();
 }
@@ -66,12 +67,10 @@ function updateBadgeText() {
     chrome.action.setBadgeText({ text: badgeText });
     chrome.action.setBadgeBackgroundColor({ color: '#4CAF50' });
 
-    if (timeLeft > 0 && isRefreshing) {
-        badgeUpdateTimer = setTimeout(updateTimer, 1000);  // Update every second
-    } else if (isRefreshing) {
-        refreshZendeskViews();
+    if (timeLeft > 0) {
+      badgeUpdateTimer = setTimeout(updateTimer, 1000);
     } else {
-        clearBadgeText();
+      refreshZendeskViews();
     }
   };
 
@@ -79,9 +78,7 @@ function updateBadgeText() {
 }
 
 chrome.alarms.onAlarm.addListener((alarm) => {
-  console.log('Alarm fired:', alarm.name);
   if (alarm.name === "refreshZendeskViews" && isRefreshing) {
-    console.log('Refreshing Zendesk views');
     refreshZendeskViews();
   }
 });
@@ -89,10 +86,10 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 function refreshZendeskViews() {
   chrome.tabs.query({ url: "https://*.zendesk.com/agent/*" }, (tabs) => {
     if (tabs.length === 0) {
-      console.log('No Zendesk tabs found');
-      scheduleNextRefresh(); // Reschedule even if no tabs are found
+      scheduleNextRefresh();
       return;
     }
+    
     let refreshedTabs = 0;
     tabs.forEach((tab) => {
       chrome.scripting.executeScript({
@@ -101,12 +98,9 @@ function refreshZendeskViews() {
       }, (results) => {
         if (chrome.runtime.lastError) {
           console.error('Error executing script:', chrome.runtime.lastError.message);
-        } else if (results && results[0]) {
-          console.log('Script execution result:', results[0].result);
         }
-        refreshedTabs++;
-        if (refreshedTabs === tabs.length) {
-          scheduleNextRefresh(); // Reschedule after all tabs are refreshed
+        if (++refreshedTabs === tabs.length) {
+          scheduleNextRefresh();
         }
       });
     });
@@ -115,42 +109,15 @@ function refreshZendeskViews() {
 }
 
 function clickRefreshButton() {
-  // Primary selector targeting the specific refresh button
-  const refreshButtonSelector = 'button[data-test-id="views_views-list_header-refresh"]';
-  const refreshButton = document.querySelector(refreshButtonSelector);
+  // Strictly target only the specific refresh button using data-test-id
+  const refreshButton = document.querySelector(
+    'button[data-test-id="views_views-list_header-refresh"]'
+  );
 
   if (refreshButton) {
     refreshButton.click();
-    console.log('Refresh button clicked:', refreshButtonSelector);
+    console.log('Refresh button clicked');
     return true;
-  }
-
-  // Refined fallback selectors that explicitly avoid the product tray button
-  const fallbackSelectors = [
-    // Target refresh button by its specific aria-label
-    'button[aria-label="Refresh views pane"]:not([aria-label="product tray"])',
-    // Target refresh button within the views list header area
-    '[data-test-id="views_views-list_header"] button:not([aria-label="product tray"])',
-    // Look for refresh icon button but exclude product tray
-    'button.StyledIconButton-sc-1t0oughp-0:not([aria-label="product tray"])',
-    // Target refresh button by its location in the views header
-    '[data-test-id="header-toolbar"] button:not([aria-label="product tray"])'
-  ];
-
-  for (const selector of fallbackSelectors) {
-    const buttons = document.querySelectorAll(selector);
-    for (const button of buttons) {
-      // Additional checks to ensure we're not clicking the product tray
-      if (
-        !button.closest('[data-zd-owner="cDpwcm9kdWN0LXRyYXk"]') && // Exclude product tray container
-        !button.getAttribute('aria-label')?.includes('product tray') &&
-        !button.textContent.includes('Export CSV')
-      ) {
-        button.click();
-        console.log('Refresh button clicked using fallback:', selector);
-        return true;
-      }
-    }
   }
 
   console.log('Refresh button not found');
@@ -168,17 +135,15 @@ function updateIcon(isOn) {
     128: "icon-off-128.png"
   };
   chrome.action.setIcon({ path: iconPath });
-  console.log('Icon updated:', isOn ? 'on' : 'off');
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  console.log('Received message:', request);
   if (request.action === "getRefreshState") {
-    sendResponse({ nextRefreshTime: nextRefreshTime, isRefreshing: isRefreshing, refreshInterval: refreshInterval });
+    sendResponse({ nextRefreshTime, isRefreshing, refreshInterval });
   } else if (request.action === "setRefreshState") {
     isRefreshing = request.isRefreshing;
     updateIcon(isRefreshing);
-    chrome.storage.local.set({ isRefreshing: isRefreshing });
+    chrome.storage.local.set({ isRefreshing });
     if (isRefreshing) {
       scheduleNextRefresh();
     } else {
@@ -189,9 +154,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
     sendResponse({ success: true });
   } else if (request.action === "setRefreshInterval") {
-    console.log('Setting new refresh interval:', request.interval);
     refreshInterval = request.interval;
-    chrome.storage.local.set({ refreshInterval: refreshInterval });
+    chrome.storage.local.set({ refreshInterval });
     if (isRefreshing) {
       chrome.alarms.clear("refreshZendeskViews");
       scheduleNextRefresh();
@@ -199,15 +163,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse({ success: true });
   }
   return true;
-});
-
-// Use alarms for periodic state checks instead of setInterval
-chrome.alarms.create("periodicCheck", { periodInMinutes: 0.5 }); // Check every 30 seconds
-chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === "periodicCheck") {
-    chrome.alarms.getAll((alarms) => console.log('Current alarms:', alarms));
-    console.log('Current state:', { isRefreshing, nextRefreshTime, refreshInterval });
-  }
 });
 
 console.log('Background script loaded');
