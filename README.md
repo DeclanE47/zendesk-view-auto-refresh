@@ -17,7 +17,7 @@ Zendesk View Auto-Refresh is a browser extension that automatically refreshes yo
 
 ## Features
 - Automatic refresh of Zendesk views
-- Customizable refresh intervals (30 seconds to 10 minutes)
+- Customizable refresh intervals (as fast as 5 seconds, up to 10 minutes) plus a custom timer field
 - Easy on/off toggle with a live countdown to the next refresh
 - Dark mode toggle that remembers your preference
 - Works across multiple Zendesk tabs simultaneously
@@ -27,7 +27,7 @@ Zendesk View Auto-Refresh is a browser extension that automatically refreshes yo
 ## Usage
 1. Install the extension for your browser.
 2. Click the extension icon to open the popup.
-3. Select your desired refresh interval from the dropdown menu (30 seconds to 10 minutes).
+3. Select your desired refresh interval from the dropdown menu (5 seconds to 10 minutes) or set a custom interval in seconds.
 4. Toggle **Enable auto-refresh** to start or pause refreshing.
 5. (Optional) Tap the moon/sun icon to switch between light and dark mode.
 6. Your settings are saved automatically for future sessions.

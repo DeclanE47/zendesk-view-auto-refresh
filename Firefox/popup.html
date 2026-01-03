@@ -145,6 +145,44 @@
         body.dark-mode .sun-icon {
             display: block;
         }
+        .custom-interval {
+            display: none;
+            margin-top: 10px;
+        }
+        .custom-interval label {
+            margin-bottom: 8px;
+        }
+        .custom-interval input {
+            width: calc(100% - 90px);
+            padding: 8px;
+            margin-right: 10px;
+            border: 1px solid #C2C8CC;
+            border-radius: 4px;
+        }
+        body.dark-mode .custom-interval input {
+            background-color: #2F3941;
+            color: #f5f5f5;
+            border-color: #555;
+        }
+        .custom-interval button {
+            padding: 8px 12px;
+            background-color: #17494D;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .custom-interval button:hover {
+            background-color: #0f3235;
+        }
+        .custom-interval .helper {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #666;
+        }
+        body.dark-mode .custom-interval .helper {
+            color: #C2C8CC;
+        }
     </style>
 </head>
 <body>
@@ -176,13 +214,28 @@
     
     <label for="intervalSelect">Refresh interval:</label>
     <select id="intervalSelect">
-        <option value="0.5">30 Seconds</option>
-        <option value="1">1 Minute</option>
-        <option value="2">2 Minutes</option>
-        <option value="3">3 Minutes</option>
-        <option value="5">5 Minutes</option>
-        <option value="10">10 Minutes</option>
+        <option value="5">5 Seconds</option>
+        <option value="10">10 Seconds</option>
+        <option value="15">15 Seconds</option>
+        <option value="20">20 Seconds</option>
+        <option value="25">25 Seconds</option>
+        <option value="30">30 Seconds</option>
+        <option value="60">1 Minute</option>
+        <option value="120">2 Minutes</option>
+        <option value="180">3 Minutes</option>
+        <option value="300">5 Minutes</option>
+        <option value="600">10 Minutes</option>
+        <option value="custom">Custom…</option>
     </select>
+
+    <div id="customInterval" class="custom-interval">
+        <label for="customIntervalInput">Custom interval (seconds):</label>
+        <div style="display: flex; align-items: center;">
+            <input type="number" id="customIntervalInput" min="3" step="1" placeholder="Enter seconds">
+            <button id="customIntervalApply" type="button">Apply</button>
+        </div>
+        <div class="helper">Tip: minimum 3 seconds to avoid overlapping refreshes.</div>
+    </div>
     
     <div id="countdown"></div>
     
