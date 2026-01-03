@@ -13,6 +13,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const refreshToggle = document.getElementById('refreshToggle');
     const versionElement = document.getElementById('extensionVersion');
     const modeToggleIcon = document.getElementById('modeToggleIcon');
+    const customIntervalSection = document.getElementById('customInterval');
+    const customIntervalInput = document.getElementById('customIntervalInput');
+    const customIntervalApply = document.getElementById('customIntervalApply');
+    const quickIntervals = [5, 10, 15, 20, 25, 30, 60, 120, 180, 300, 600];
     let countdownInterval;
   
     // Fetch and display the extension version
@@ -22,7 +26,9 @@ document.addEventListener('DOMContentLoaded', () => {
   
     function initPopup() {
         browser.storage.sync.get(['refreshInterval', 'isRefreshing']).then((data) => {
-            intervalSelect.value = data.refreshInterval !== undefined ? data.refreshInterval.toString() : "0.5";
+            const storedInterval = data.refreshInterval !== undefined ? data.refreshInterval : 0.5;
+            const storedSeconds = Math.max(1, Math.round(storedInterval * 60));
+            syncIntervalSelection(storedSeconds);
             refreshToggle.checked = data.isRefreshing !== undefined ? data.isRefreshing : false;
             
             browser.runtime.sendMessage({ action: "getRefreshState" }).then((response) => {
@@ -49,13 +55,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   
     intervalSelect.addEventListener('change', () => {
-        const newInterval = parseFloat(intervalSelect.value);
-        browser.runtime.sendMessage({ 
-            action: "setRefreshInterval", 
-            interval: newInterval 
-        }).then(() => {
-            updateCountdown();
-        });
+        if (intervalSelect.value === 'custom') {
+            toggleCustomInterval(true);
+            customIntervalInput.focus();
+            return;
+        }
+
+        toggleCustomInterval(false);
+        const newIntervalSeconds = parseInt(intervalSelect.value, 10);
+        if (!Number.isNaN(newIntervalSeconds)) {
+            applyIntervalSeconds(newIntervalSeconds);
+        }
     });
   
     refreshToggle.addEventListener('change', () => {
@@ -74,6 +84,53 @@ document.addEventListener('DOMContentLoaded', () => {
             darkModeInitialized = true;
         }
     });
+
+    customIntervalApply.addEventListener('click', () => {
+        const customSeconds = parseInt(customIntervalInput.value, 10);
+        if (Number.isNaN(customSeconds) || customSeconds < 3) {
+            customIntervalInput.setCustomValidity("Please enter at least 3 seconds.");
+            customIntervalInput.reportValidity();
+            return;
+        }
+        customIntervalInput.setCustomValidity("");
+        intervalSelect.value = 'custom';
+        applyIntervalSeconds(customSeconds);
+    });
+
+    customIntervalInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            customIntervalApply.click();
+        }
+    });
+
+    function toggleCustomInterval(shouldShow) {
+        customIntervalSection.style.display = shouldShow ? 'block' : 'none';
+    }
+
+    function syncIntervalSelection(storedSeconds) {
+        if (quickIntervals.includes(storedSeconds)) {
+            intervalSelect.value = storedSeconds.toString();
+            toggleCustomInterval(false);
+        } else {
+            intervalSelect.value = 'custom';
+            customIntervalInput.value = storedSeconds;
+            toggleCustomInterval(true);
+        }
+    }
+
+    function applyIntervalSeconds(seconds) {
+        const normalizedSeconds = Math.max(3, Math.floor(seconds));
+        const intervalInMinutes = normalizedSeconds / 60;
+
+        browser.runtime.sendMessage({ 
+            action: "setRefreshInterval", 
+            interval: intervalInMinutes 
+        }).then(() => {
+            updateCountdown();
+        });
+        syncIntervalSelection(normalizedSeconds);
+    }
   
     function updateCountdown() {
         clearInterval(countdownInterval);
